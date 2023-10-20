@@ -1,7 +1,17 @@
 pipeline {
     agent any
-     
-   stage('Build The Source Code') {
+    tools{
+        maven 'myMaven'
+    }
+
+    stages {
+        stage('Checkout the Source Code') {
+            steps {
+                echo 'Checkout the code..........................................'
+                git 'https://github.com/sajidshaikhguru/addressbook-demo.git'
+            }
+        }
+        stage('Build The Source Code') {
             steps{
 			    script{
 				     try{
@@ -22,31 +32,6 @@ pipeline {
                 
             }
         }
-        stage('Build Docker Image') {
-            when {
-                branch 'master'
-            }
-            steps {
-                script {
-                    app = docker.build("sajidshaikhguru/train-schedule")
-                    app.inside {
-                        sh 'echo $(curl localhost:8080)'
-                    }
-                }
-            }
-        }
-        stage('Push Docker Image') {
-            when {
-                branch 'master'
-            }
-            steps {
-                script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'docker_hub_login') {
-                        app.push("${env.BUILD_NUMBER}")
-                        app.push("latest")
-                    }
-                }
-            }
-        }
-    }   
+       
+    }
 }
