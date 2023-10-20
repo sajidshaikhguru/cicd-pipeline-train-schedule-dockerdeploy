@@ -1,38 +1,14 @@
 pipeline {
     agent any
-    tools{
-        gradle 'myGradle'
-    }
-
     stages {
-        stage('Checkout the Source Code') {
+        stage('Build') {
             steps {
-                echo 'Checkout the code..........................................'
-                git 'https://github.com/sajidshaikhguru/addressbook-demo.git'
+                echo 'Running build automation'
+                sh './gradlew build --no-daemon'
+                archiveArtifacts artifacts: 'dist/trainSchedule.zip'
             }
         }
-        stage('Build The Source Code') {
-            steps{
-			    script{
-				     try{
-                       echo 'Build the Source Code ....................................'
-                       sh "mvn clean package"
-					 }
-					 catch(Exception e){
-                         echo 'handling the exception ...................................'
-                         emailext body: '''Hello Developer,
-
-                         The Job got failed during Build.
-
-                         Thanks,
-                         Devops''', subject: 'Attention: $(JOB_NAME) is failed. Please look into the Build Number $(BUILD_NUMBER)', to: 'niladrimondal.mondal@gmail.com'
-                    }
-				
-				}
-                
-            }
-        } 
-	 stage('Build Docker Image') {
+        stage('Build Docker Image') {
             when {
                 branch 'master'
             }
@@ -45,6 +21,18 @@ pipeline {
                 }
             }
         }
-       
-    }
+        stage('Push Docker Image') {
+            when {
+                branch 'master'
+            }
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'docker_hub_login') {
+                        app.push("${env.BUILD_NUMBER}")
+                        app.push("latest")
+                    }
+                }
+            }
+        }
+    }   
 }
