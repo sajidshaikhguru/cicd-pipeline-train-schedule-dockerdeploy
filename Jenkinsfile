@@ -1,8 +1,6 @@
 pipeline {
     agent any
-     tools{
-        maven 'myMaven'
-    }
+     
    stage('Build The Source Code') {
             steps{
 			    script{
