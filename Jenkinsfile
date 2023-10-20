@@ -1,14 +1,27 @@
 pipeline {
     agent any
      tools{
-        gradle 'myGradle'
+        maven 'myMaven'
     }
-    stages {
-        stage('Build') {
-            steps {
-                echo 'Running build automation'
-                sh './gradlew build'
-                archiveArtifacts artifacts: 'dist/trainSchedule.zip'
+   stage('Build The Source Code') {
+            steps{
+			    script{
+				     try{
+                       echo 'Build the Source Code ....................................'
+                       sh "mvn clean package"
+					 }
+					 catch(Exception e){
+                         echo 'handling the exception ...................................'
+                         emailext body: '''Hello Developer,
+
+                         The Job got failed during Build.
+
+                         Thanks,
+                         Devops''', subject: 'Attention: $(JOB_NAME) is failed. Please look into the Build Number $(BUILD_NUMBER)', to: 'niladrimondal.mondal@gmail.com'
+                    }
+				
+				}
+                
             }
         }
         stage('Build Docker Image') {
