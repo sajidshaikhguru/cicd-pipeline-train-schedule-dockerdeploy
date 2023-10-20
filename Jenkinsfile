@@ -32,10 +32,17 @@ pipeline {
                 
             }
         } 
-	    stage('Deploy the Application') {
+	 stage('Build Docker Image') {
+            when {
+                branch 'master'
+            }
             steps {
-                echo 'Deploy the Application.....................................'
-                deploy adapters: [tomcat9(credentialsId: 'tomcat-cred', path: '', url: 'http://100.26.29.192:8080/')], contextPath: 'addressbookssimplilearn', war: '**/*.war'
+                script {
+                    app = docker.build("sajidshaikhguru/train-schedule")
+                    app.inside {
+                        sh 'echo $(curl localhost:8080)'
+                    }
+                }
             }
         }
        
